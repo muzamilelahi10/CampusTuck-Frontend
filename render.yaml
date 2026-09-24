@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: campustuck-web
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://campustuck-api.onrender.com/api
+      - key: NEXT_PUBLIC_SOCKET_URL
+        value: https://campustuck-api.onrender.com
