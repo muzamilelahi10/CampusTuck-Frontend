@@ -28,8 +28,8 @@ cp .env.example .env.local
 Key environment variables:
 | Variable | Description | Default |
 | :--- | :--- | :--- |
-| `NEXT_PUBLIC_API_URL` | Base URL of the backend API | `http://localhost:5000/api` |
-| `NEXT_PUBLIC_SOCKET_URL` | Socket.IO server URL | `http://localhost:5000` |
+| `NEXT_PUBLIC_API_URL` | Backend URL (the client adds `/api`) | `https://campustuck-api.onrender.com` |
+| `NEXT_PUBLIC_SOCKET_URL` | Optional Socket.IO server override | Uses the API backend origin |
 
 ### 3. Running Locally
 - **Development**:
@@ -53,5 +53,6 @@ Key environment variables:
 - **Start Command**: `npm start`
 - **Environment Variables**:
   - `NODE_ENV=production`
-  - `NEXT_PUBLIC_API_URL=https://campustuck-api.onrender.com/api`
-  - `NEXT_PUBLIC_SOCKET_URL=https://campustuck-api.onrender.com`
+  - `NEXT_PUBLIC_API_URL=https://campustuck-api.onrender.com`
+- On Vercel, set the root directory to `frontend` and add this API variable for the desired environments, then redeploy so Next.js includes it in the browser build.
+- Remove any old `NEXT_PUBLIC_SOCKET_URL` pointing to a local server, or set it to `https://campustuck-api.onrender.com`.
