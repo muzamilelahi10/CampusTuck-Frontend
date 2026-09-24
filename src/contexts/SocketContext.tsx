@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { useToast } from '../components/Toast';
-import { API_URL } from '../lib/api';
+import { API_URL, getAuthToken } from '../lib/api';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -25,8 +25,10 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
+    const token = getAuthToken();
     const s = io(SOCKET_URL, {
       withCredentials: true,
+      auth: token ? { token } : undefined,
       transports: ['websocket', 'polling'],
       autoConnect: true,
     });
@@ -45,11 +47,17 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     });
 
     s.on('new_order', (order: any) => {
-      toast.info(`New order received: ${order.orderNumber} (Rs. ${(order.total / 100).toFixed(0)})`, 'New Order Placed!');
+      toast.info(
+        `New order received: ${order.orderNumber} (Rs. ${(order.total / 100).toFixed(0)})`,
+        'New Order Placed!'
+      );
     });
 
     s.on('low_stock_alert', (product: any) => {
-      toast.warning(`Product "${product.name}" is low on stock (${product.stock} units remaining)!`, 'Low Stock Alert');
+      toast.warning(
+        `Product "${product.name}" is low on stock (${product.stock} units remaining)!`,
+        'Low Stock Alert'
+      );
     });
 
     setSocket(s);

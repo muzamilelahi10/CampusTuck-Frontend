@@ -24,6 +24,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'campustuck-backend.onrender.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'campustuck-api.onrender.com',
       },
     ],
