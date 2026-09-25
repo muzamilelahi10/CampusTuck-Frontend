@@ -1,1 +1,31 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="-115 -120 230 240"><g transform="scale(0.7333333333333333)" xmlns="http://www.w3.org/2000/svg"><ellipse cx="0" cy="70" rx="65" ry="8" fill="#AA9386" opacity=".22" /><path d="M-55 -71h110l-9 136h-92z" fill="#D7856D" stroke="#C2745D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M-55 -71h110l-8 19h-94z" fill="#E9B19C" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><circle cx="0" cy="0" r="39" fill="#F1D39F" /><circle cx="-9" cy="-6" r="5" fill="#846047" /><circle cx="10" cy="9" r="5" fill="#846047" /><circle cx="12" cy="-14" r="4" fill="#846047" /><text x="0" y="53" font-family="'DejaVu Sans', Arial, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1.5" opacity="1">COOKIE</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <!-- Soft shadow -->
+  <ellipse cx="120" cy="200" rx="55" ry="12" fill="#16251F" fill-opacity="0.08"/>
+
+  <!-- Golden Cookie Body with subtle bumpy silhouette -->
+  <g transform="translate(120, 115) translate(-120, -115)">
+    <!-- Base Cookie Circle -->
+    <path d="M120 45 C158 45 190 77 190 115 C190 153 158 185 120 185 C82 185 50 153 50 115 C50 77 82 45 120 45 Z" fill="#E6A868"/>
+    
+    <!-- Warm highlights & texture -->
+    <ellipse cx="112" cy="108" rx="60" ry="60" fill="#EBB47A"/>
+    <ellipse cx="128" cy="122" rx="52" ry="50" fill="#DF9F5E" fill-opacity="0.5"/>
+
+    <!-- Chocolate Chips (Rich Dark Chocolate) -->
+    <!-- Chip 1 -->
+    <path d="M92 84 C96 82 104 86 102 92 C100 96 92 98 88 94 C86 90 89 85 92 84 Z" fill="#382117"/>
+    <!-- Chip 2 -->
+    <path d="M136 78 C142 76 150 82 148 88 C145 94 138 94 133 90 C130 86 132 80 136 78 Z" fill="#382117"/>
+    <!-- Chip 3 -->
+    <path d="M112 112 C118 108 128 114 126 122 C124 128 114 130 108 124 C104 118 108 114 112 112 Z" fill="#382117"/>
+    <!-- Chip 4 -->
+    <path d="M82 132 C88 128 95 134 94 140 C92 146 84 147 80 142 C77 138 78 134 82 132 Z" fill="#382117"/>
+    <!-- Chip 5 -->
+    <path d="M145 128 C151 126 158 132 156 138 C154 144 146 146 142 140 C139 136 141 130 145 128 Z" fill="#382117"/>
+    <!-- Small nibs -->
+    <circle cx="118" cy="72" r="3.5" fill="#382117"/>
+    <circle cx="158" cy="104" r="4" fill="#382117"/>
+    <circle cx="78" cy="108" r="3.5" fill="#382117"/>
+    <circle cx="125" cy="154" r="4.5" fill="#382117"/>
+  </g>
+</svg>

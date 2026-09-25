@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <!-- Soft shadow -->
+  <ellipse cx="120" cy="204" rx="42" ry="10" fill="#16251F" fill-opacity="0.08"/>
+
+  <!-- Hand Sanitizer Dispenser Bottle -->
+  <g transform="translate(120, 114) translate(-120, -114)">
+    <!-- Pump Dispenser Head -->
+    <path d="M120 40 L120 54" stroke="#CCD5CA" stroke-width="8" stroke-linecap="round"/>
+    <path d="M112 40 L136 40 L140 46 L108 46 Z" fill="#E4E9E0" stroke="#CCD5CA" stroke-width="1"/>
+    <!-- Nozzle spout -->
+    <path d="M112 42 L88 48 C86 49 86 52 89 53 L96 53" stroke="#CCD5CA" stroke-width="4" stroke-linecap="round" fill="none"/>
+
+    <!-- Bottle Neck Ring -->
+    <rect x="106" y="54" width="28" height="10" rx="3" fill="#CCD5CA"/>
+
+    <!-- Bottle Body (Translucent Refreshing Gel Blue) -->
+    <rect x="88" y="64" width="64" height="118" rx="16" fill="#BFDDF3" stroke="#9AC5E8" stroke-width="1.5"/>
+
+    <!-- Inner Gel level -->
+    <rect x="91" y="80" width="58" height="98" rx="12" fill="#90C5EC" fill-opacity="0.5"/>
+
+    <!-- Bottle highlight -->
+    <rect x="94" y="70" width="6" height="104" rx="3" fill="#FFFFFF" fill-opacity="0.45"/>
+
+    <!-- Label -->
+    <rect x="96" y="98" width="48" height="50" rx="6" fill="#FFFFFF" fill-opacity="0.95"/>
+    <circle cx="120" cy="114" r="8" fill="#4B9ED9"/>
+    <path d="M117 114 L123 114 M120 111 L120 117" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+    <text x="120" y="134" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="800" fill="#16251F" text-anchor="middle">CLEAN</text>
+    <text x="120" y="142" font-family="'Plus Jakarta Sans', sans-serif" font-size="6" font-weight="600" fill="#68766E" text-anchor="middle">GEL 50ML</text>
+  </g>
+</svg>

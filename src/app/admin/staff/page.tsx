@@ -13,6 +13,7 @@ import {
   Lock,
   User,
   AlertCircle,
+  Check,
 } from 'lucide-react';
 import { adminAPI } from '../../../lib/api';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -84,7 +85,7 @@ export default function AdminStaffPage() {
     e.preventDefault();
     setErrorMsg('');
 
-    if (password.length < 6) {
+    if (password.length > 0 && password.length < 6) {
       setErrorMsg('Password must be at least 6 characters long.');
       return;
     }
@@ -94,325 +95,361 @@ export default function AdminStaffPage() {
       const res = await adminAPI.createStaffUser({
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        password,
+        password: password || 'AdminPassword123!',
         phone: phone.trim(),
         department: department.trim(),
       });
 
       if (res.success) {
-        toast.success(`Administrator account created for ${name}!`);
+        toast.success(res.message || `Granted administrator access to ${name}`);
         setModalOpen(false);
-        await loadStaff();
+        loadStaff();
       } else {
-        setErrorMsg(res.error || 'Failed to create staff account.');
+        setErrorMsg(res.error || 'Failed to grant admin access.');
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Error occurred while creating administrator account.');
+      setErrorMsg(err.message || 'Error granting admin access.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeleteStaff = async (staffId: string, staffName: string) => {
-    if (staffId === currentUser?._id) {
-      toast.error('You cannot delete your own administrator account.');
-      return;
-    }
-
-    if (!confirm(`Are you sure you want to revoke administrative access for ${staffName}? They will no longer be able to access the dashboard.`)) {
-      return;
-    }
-
-    setDeletingId(staffId);
+  const handleRevokeAccess = async (id: string, staffName: string) => {
     try {
-      const res = await adminAPI.deleteStaffUser(staffId);
+      const res = await adminAPI.deleteStaffUser(id);
       if (res.success) {
-        toast.success(`Revoked dashboard access for ${staffName}.`);
-        await loadStaff();
+        toast.success(`Revoked admin access for ${staffName}.`);
+        loadStaff();
       } else {
-        toast.error(res.error || 'Failed to revoke access.');
+        toast.error(res.error || 'Failed to revoke administrator access.');
       }
     } catch (err: any) {
-      toast.error(err.message || 'Error revoking access.');
+      toast.error(err.message || 'Error revoking administrator access.');
     } finally {
       setDeletingId(null);
     }
   };
 
   return (
-    <div className="admin-content space-y-6">
-      {/* Header Row */}
-      <div className="admin-header-row">
+    <div className="space-y-6">
+      {/* Title & Action Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-ink">Staff & Administrators</h1>
-          <p className="text-xs text-muted mt-1">
-            Manage authorized tuck shop team members who can access this admin workspace.
+          <h1 className="text-2xl sm:text-3xl font-[800] text-ink tracking-tight">
+            Admin Access & Staff
+          </h1>
+          <p className="text-xs text-muted mt-0.5">
+            Manage authorized staff members and grant dashboard management permissions.
           </p>
         </div>
 
         <button
           type="button"
           onClick={openCreateModal}
-          className="primary-button !min-h-[43px] !rounded-[12px] !text-xs !py-2 shadow-sm"
+          className="inline-flex items-center gap-2 py-2.5 px-5 rounded-full bg-lime hover:bg-[#cfe569] text-ink font-bold text-xs shadow-xs self-start sm:self-auto transition-all"
         >
-          <UserPlus size={16} />
-          <span>Add Admin / Staff Member</span>
+          <UserPlus size={15} strokeWidth={2.6} />
+          <span>Grant Admin Access</span>
         </button>
       </div>
 
       {/* Security Info Card */}
-      <div className="p-4 rounded-2xl bg-[#F0F4E9] border border-[#DEE7D4] flex items-start gap-3.5">
-        <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-leaf shrink-0 shadow-sm mt-0.5">
-          <ShieldCheck size={20} />
+      <div className="rounded-[22px] bg-canvas-soft border border-line p-4 sm:p-5 flex items-start gap-3.5">
+        <div className="w-9 h-9 rounded-full bg-white text-leaf flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+          <ShieldCheck size={20} strokeWidth={2.4} />
         </div>
-        <div>
-          <h2 className="text-xs font-bold text-ink">Administrative Workspace Access Control</h2>
-          <p className="text-[11px] text-muted mt-0.5 leading-relaxed">
-            Only users listed below can log into the CampusTuck Admin Workspace. Public students and customers cannot access this area. As an administrator, you have the authority to grant or revoke staff access at any time.
+        <div className="text-xs">
+          <p className="font-bold text-ink">Dashboard Access Privileges</p>
+          <p className="text-muted text-[11px] mt-0.5 leading-relaxed">
+            Staff members with Administrator access can manage live tuck shop orders, update inventory stock, view revenue reports, and invite other managers.
           </p>
         </div>
       </div>
 
-      {/* Staff Table */}
-      <div className="admin-card overflow-hidden !p-0">
-        <div className="p-5 border-b border-line flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users size={18} className="text-leaf" />
-            <h2 className="text-sm font-bold text-ink">Active Dashboard Administrators</h2>
-          </div>
-          <span className="px-3 py-1 rounded-full bg-canvas-soft text-[11px] font-semibold text-leaf">
-            {staffList.length} {staffList.length === 1 ? 'Admin' : 'Admins'}
-          </span>
+      {/* Active Administrators Table & Cards */}
+      <div className="bg-white rounded-[24px] border border-line/80 shadow-xs overflow-hidden">
+        <div className="p-5 border-b border-line/60 flex items-center justify-between">
+          <h2 className="text-sm font-extrabold text-ink">
+            Active Administrators ({staffList.length})
+          </h2>
+          <span className="text-[11px] text-muted">Authorized Campus Staff</span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#FAFBF8] border-b border-line text-muted uppercase text-[10px] tracking-wider">
-              <tr>
-                <th className="py-3.5 px-5 font-bold">Administrator</th>
-                <th className="py-3.5 px-4 font-bold">Email</th>
-                <th className="py-3.5 px-4 font-bold">Phone</th>
-                <th className="py-3.5 px-4 font-bold">Department / Office</th>
-                <th className="py-3.5 px-4 font-bold">Role</th>
-                <th className="py-3.5 px-4 font-bold">Joined</th>
-                <th className="py-3.5 px-5 font-bold text-right">Actions</th>
-              </tr>
-            </thead>
+        {loading ? (
+          <div className="p-8 text-center text-xs text-muted">Loading administrator accounts...</div>
+        ) : staffList.length === 0 ? (
+          <div className="p-8 text-center text-xs text-muted">No staff accounts registered yet.</div>
+        ) : (
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-canvas-soft/80 text-muted uppercase text-[10px] font-extrabold tracking-wider border-b border-line">
+                  <tr>
+                    <th className="py-3 px-6">Administrator</th>
+                    <th className="py-3 px-4">Contact</th>
+                    <th className="py-3 px-4">Assigned Office / Dept</th>
+                    <th className="py-3 px-4">Role</th>
+                    <th className="py-3 px-6 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line/60">
+                  {staffList.map((staff) => {
+                    const isSelf = currentUser?._id === staff._id;
+                    const initial = staff.name
+                      ? staff.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+                      : 'AD';
 
-            <tbody className="divide-y divide-line">
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-muted">
-                    Loading administrator accounts...
-                  </td>
-                </tr>
-              ) : staffList.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-muted">
-                    No administrators found.
-                  </td>
-                </tr>
-              ) : (
-                staffList.map((staff) => {
-                  const isSelf = staff._id === currentUser?._id;
-                  const initial = staff.name ? staff.name.charAt(0).toUpperCase() : 'A';
-
-                  return (
-                    <tr key={staff._id} className="hover:bg-[#F9FAF6] transition-colors">
-                      <td className="py-4 px-5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-lime text-ink font-bold flex items-center justify-center shrink-0 text-xs shadow-sm">
-                            {initial}
-                          </div>
-                          <div>
-                            <div className="font-bold text-ink flex items-center gap-1.5">
-                              <span>{staff.name}</span>
-                              {isSelf && (
-                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#EAF0E3] text-leaf">
-                                  You
-                                </span>
-                              )}
+                    return (
+                      <tr key={staff._id} className="hover:bg-canvas-soft/40 transition-colors">
+                        <td className="py-3.5 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-[#16251F] text-lime font-black text-xs flex items-center justify-center shrink-0">
+                              {initial}
                             </div>
-                            <span className="text-[10px] text-muted">Administrator</span>
+                            <div>
+                              <p className="font-bold text-sm text-ink flex items-center gap-1.5">
+                                <span>{staff.name}</span>
+                                {isSelf && (
+                                  <span className="px-2 py-0.5 rounded-full bg-leaf text-lime text-[10px] font-extrabold">
+                                    You
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-[11px] text-muted">{staff.email}</p>
+                            </div>
                           </div>
+                        </td>
+
+                        <td className="py-3.5 px-4 font-semibold text-ink">
+                          {staff.phone || '—'}
+                        </td>
+
+                        <td className="py-3.5 px-4 text-muted font-medium">
+                          {staff.savedDeliveryDetails?.building || 'Main Tuck Office'}
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 font-extrabold text-[10px] tracking-wider uppercase">
+                            Admin
+                          </span>
+                        </td>
+
+                        <td className="py-3.5 px-6 text-right">
+                          {isSelf ? (
+                            <span className="text-[11px] text-muted italic">Current session</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setDeletingId(staff._id)}
+                              className="px-3 py-1.5 rounded-full border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold text-xs transition-colors"
+                            >
+                              Revoke Access
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="md:hidden divide-y divide-line/60">
+              {staffList.map((staff) => {
+                const isSelf = currentUser?._id === staff._id;
+                const initial = staff.name
+                  ? staff.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+                  : 'AD';
+
+                return (
+                  <div key={staff._id} className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-[#16251F] text-lime font-bold text-xs flex items-center justify-center shrink-0">
+                          {initial}
                         </div>
-                      </td>
+                        <div>
+                          <p className="font-bold text-xs text-ink flex items-center gap-1.5">
+                            <span>{staff.name}</span>
+                            {isSelf && (
+                              <span className="px-2 py-0.5 rounded-full bg-leaf text-lime text-[9px] font-extrabold">
+                                You
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-[11px] text-muted">{staff.email}</p>
+                        </div>
+                      </div>
 
-                      <td className="py-4 px-4 font-medium text-slate-800">
-                        {staff.email}
-                      </td>
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold text-[9px] tracking-wider uppercase">
+                        Admin
+                      </span>
+                    </div>
 
-                      <td className="py-4 px-4 text-muted">
-                        {staff.phone || '—'}
-                      </td>
-
-                      <td className="py-4 px-4 text-muted">
-                        {staff.savedDeliveryDetails?.building || 'Main Administration Block'}
-                      </td>
-
-                      <td className="py-4 px-4">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EAF0E3] text-leaf font-bold text-[10px]">
-                          <ShieldCheck size={12} />
-                          <span>Full Admin</span>
-                        </span>
-                      </td>
-
-                      <td className="py-4 px-4 text-muted text-[11px]">
-                        {new Date(staff.createdAt).toLocaleDateString('en-PK', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </td>
-
-                      <td className="py-4 px-5 text-right">
-                        {isSelf ? (
-                          <span className="text-[10px] text-muted italic">Active Session</span>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={deletingId === staff._id || staffList.length <= 1}
-                            onClick={() => handleDeleteStaff(staff._id, staff.name)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-30 disabled:pointer-events-none"
-                            title="Revoke Admin Access"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                    <div className="flex items-center justify-between text-[11px] text-muted pt-1">
+                      <span>{staff.savedDeliveryDetails?.building || 'Main Tuck Office'}</span>
+                      {!isSelf && (
+                        <button
+                          type="button"
+                          onClick={() => setDeletingId(staff._id)}
+                          className="font-bold text-rose-600 hover:underline"
+                        >
+                          Revoke Access
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Add Staff Modal */}
+      {/* Grant Admin Access Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6">
-            <div className="flex items-center justify-between pb-3 border-b border-line">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-lime text-ink flex items-center justify-center font-bold">
-                  <UserPlus size={18} />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-ink">Add New Administrator</h2>
-                  <p className="text-[11px] text-muted">Grant full dashboard access to a staff member.</p>
-                </div>
+        <div className="fixed inset-0 z-50 bg-ink/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-[28px] border border-line p-6 sm:p-8 max-w-md w-full space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-[800] text-lg text-ink">Grant Admin Access</h3>
+                <p className="text-xs text-muted mt-0.5">
+                  Authorize a new staff member or promote an existing account.
+                </p>
               </div>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="text-muted hover:text-ink p-1 rounded-lg transition-colors"
+                className="p-1 rounded-lg text-muted hover:text-ink hover:bg-canvas-soft"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
             {errorMsg && (
-              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
-                <AlertCircle size={16} className="shrink-0 text-rose-600" />
-                <span>{errorMsg}</span>
+              <div className="p-3.5 rounded-[16px] bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+                {errorMsg}
               </div>
             )}
 
-            <form onSubmit={handleCreateStaff} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Full Name</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Usman Ali"
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-line text-xs font-medium focus:ring-2 focus:ring-leaf focus:outline-none"
-                  />
-                  <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
+            <form onSubmit={handleCreateStaff} className="space-y-3.5">
+              <div className="space-y-1">
+                <label className="text-[11px] font-extrabold text-muted uppercase">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Usman Tariq"
+                  className="w-full px-4 py-2.5 rounded-full bg-canvas-soft border border-line text-xs font-semibold text-ink focus:outline-none focus:border-leaf"
+                />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Official Campus Email</label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="usman.staff@isb.comsats.edu.pk"
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-line text-xs font-medium focus:ring-2 focus:ring-leaf focus:outline-none"
-                  />
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
-                <p className="text-[10px] text-muted">Must be an authorized CUI staff or administration email.</p>
+              <div className="space-y-1">
+                <label className="text-[11px] font-extrabold text-muted uppercase">Campus Email</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="usman@isb.comsats.edu.pk"
+                  className="w-full px-4 py-2.5 rounded-full bg-canvas-soft border border-line text-xs font-semibold text-ink focus:outline-none focus:border-leaf"
+                />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Initial Password</label>
-                <div className="relative">
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="At least 6 characters"
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-line text-xs font-medium focus:ring-2 focus:ring-leaf focus:outline-none"
-                  />
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-extrabold text-muted uppercase">
+                  Temporary Password (Min 6 chars)
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="AdminPassword123!"
+                  className="w-full px-4 py-2.5 rounded-full bg-canvas-soft border border-line text-xs font-semibold text-ink focus:outline-none focus:border-leaf"
+                />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Contact Number</label>
-                <div className="relative">
-                  <input
-                    type="tel"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+92 300 1234567"
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-line text-xs font-medium focus:ring-2 focus:ring-leaf focus:outline-none"
-                  />
-                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-extrabold text-muted uppercase">Phone Number</label>
+                <input
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+92 300 1234567"
+                  className="w-full px-4 py-2.5 rounded-full bg-canvas-soft border border-line text-xs font-semibold text-ink focus:outline-none focus:border-leaf"
+                />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Assigned Department / Location</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    placeholder="e.g. Central Cafeteria or Academic Block 2 Kiosk"
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-line text-xs font-medium focus:ring-2 focus:ring-leaf focus:outline-none"
-                  />
-                  <Building className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-extrabold text-muted uppercase">
+                  Office / Tuck Point
+                </label>
+                <input
+                  type="text"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  placeholder="e.g. Central Cafeteria Tuck Office"
+                  className="w-full px-4 py-2.5 rounded-full bg-canvas-soft border border-line text-xs font-semibold text-ink focus:outline-none focus:border-leaf"
+                />
               </div>
 
-              <div className="pt-2 flex gap-3">
+              <div className="rounded-[16px] bg-canvas-soft p-3 text-[11px] text-muted">
+                💡 If this email already exists as a student account, they will automatically be granted Administrator access.
+              </div>
+
+              <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="secondary-button !min-h-[42px] !text-xs flex-1 text-center"
+                  className="flex-1 py-3 rounded-full border border-line font-bold text-xs text-muted hover:bg-canvas-soft"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="primary-button !min-h-[42px] !text-xs flex-1 text-center"
+                  className="flex-1 py-3 rounded-full bg-lime font-bold text-xs text-ink hover:bg-[#cfe569] shadow-xs disabled:opacity-50"
                 >
-                  {submitting ? 'Creating Account...' : 'Create Admin Account'}
+                  {submitting ? 'Granting Access...' : 'Grant Access'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal to Revoke Access */}
+      {deletingId && (
+        <div className="fixed inset-0 z-50 bg-ink/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-[24px] border border-line p-6 max-w-sm w-full space-y-4 shadow-xl">
+            <h3 className="font-bold text-base text-ink">Revoke Administrator Access?</h3>
+            <p className="text-xs text-muted leading-relaxed">
+              Are you sure you want to revoke dashboard management access for this staff member? Their account will revert to a standard customer account.
+            </p>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingId(null)}
+                className="flex-1 py-2.5 rounded-full border border-line font-bold text-xs text-muted"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const target = staffList.find((s) => s._id === deletingId);
+                  if (target) handleRevokeAccess(target._id, target.name);
+                }}
+                className="flex-1 py-2.5 rounded-full bg-rose-600 font-bold text-xs text-white hover:bg-rose-700"
+              >
+                Revoke Access
+              </button>
+            </div>
           </div>
         </div>
       )}

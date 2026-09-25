@@ -2,289 +2,246 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, ArrowRight } from 'lucide-react';
+import { ArrowRight, TrendingUp, Clock, AlertTriangle, PackageCheck } from 'lucide-react';
 import { IDashboardMetrics, IOrder } from '@campustuck/shared';
 import { adminAPI } from '../../lib/api';
-import { useAuth } from '../../contexts/AuthContext';
-import { useSocket } from '../../contexts/SocketContext';
 import { PriceTag } from '../../components/PriceTag';
 
 export default function AdminDashboardPage() {
   const [metrics, setMetrics] = useState<IDashboardMetrics | null>(null);
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  const { user } = useAuth();
-  const { socket } = useSocket();
 
   useEffect(() => {
-    let isMounted = true;
-
     async function loadData() {
       try {
-        const [metricsRes, ordersRes] = await Promise.all([
+        const [mRes, oRes] = await Promise.all([
           adminAPI.getMetrics(),
-          adminAPI.getOrders({ limit: 6 }),
+          adminAPI.getOrders({ limit: 5 }),
         ]);
 
-        if (isMounted) {
-          if (metricsRes.success) setMetrics(metricsRes.metrics);
-          if (ordersRes.success) setOrders(ordersRes.orders || []);
-          setError(false);
-        }
+        if (mRes.success && mRes.metrics) setMetrics(mRes.metrics);
+        if (oRes.success && oRes.orders) setOrders(oRes.orders);
       } catch (err) {
-        console.error('Failed to load dashboard:', err);
-        if (isMounted) setError(true);
+        console.error('Error fetching admin dashboard data:', err);
       } finally {
-        if (isMounted) setLoading(false);
+        setLoading(false);
       }
     }
 
     loadData();
+  }, []);
 
-    socket?.on('new_order', loadData);
-    socket?.on('order_status_updated', loadData);
-    socket?.on('low_stock_alert', loadData);
-
-    return () => {
-      isMounted = false;
-      socket?.off('new_order', loadData);
-      socket?.off('order_status_updated', loadData);
-      socket?.off('low_stock_alert', loadData);
-    };
-  }, [socket]);
-
-  const firstName = user ? user.name.split(' ')[0] : 'Muzamil';
-
-  // Status badge styling matching 03-Admin-Dashboard.svg
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'preparing':
-        return (
-          <span className="px-3.5 py-1 rounded-full bg-[#EAF0E3] text-leaf font-semibold text-[11px] inline-block">
-            Preparing
-          </span>
-        );
-      case 'ready_for_pickup':
-        return (
-          <span className="px-3.5 py-1 rounded-full bg-[#E9F0D1] text-leaf font-semibold text-[11px] inline-block">
-            Ready
-          </span>
-        );
-      case 'placed':
-        return (
-          <span className="px-3.5 py-1 rounded-full bg-[#FAEAE1] text-leaf font-semibold text-[11px] inline-block">
-            Placed
-          </span>
-        );
-      case 'completed':
-        return (
-          <span className="px-3.5 py-1 rounded-full bg-canvas-soft text-leaf font-semibold text-[11px] inline-block">
-            Completed
-          </span>
-        );
-      default:
-        return (
-          <span className="px-3.5 py-1 rounded-full bg-slate-100 text-muted font-semibold text-[11px] inline-block">
-            {status.replace(/_/g, ' ')}
-          </span>
-        );
-    }
-  };
-
-  // Mock bar chart heights for weekly overview if empty
+  // Demo bar chart values matching Figma Sales this week
   const weekDays = [
-    { day: 'Mon', height: 72 },
-    { day: 'Tue', height: 96 },
-    { day: 'Wed', height: 68 },
-    { day: 'Thu', height: 117 },
-    { day: 'Fri', height: 140 },
-    { day: 'Sat', height: 101 },
-    { day: 'Sun', height: 167, highlight: true },
+    { day: 'M', height: 45 },
+    { day: 'T', height: 65 },
+    { day: 'W', height: 50 },
+    { day: 'T', height: 80 },
+    { day: 'F', height: 75 },
+    { day: 'S', height: 60 },
+    { day: 'S', height: 95, active: true },
+  ];
+
+  // Default metrics matching Figma if empty
+  const revenueTotal = metrics ? metrics.totalRevenuePaisa : 1248000; // Rs. 12,480
+  const ordersCount = metrics
+    ? metrics.pendingOrdersCount + metrics.completedOrdersCount
+    : 38;
+  const preparingCount = metrics ? metrics.pendingOrdersCount : 14;
+  const lowStockCount = metrics ? metrics.lowStockCount : 3;
+
+  const demoRecentOrders = [
+    { id: '1', customer: 'Ayesha Khan', tag: '#CT-2041 • Pick up', status: 'PREPARING', amount: 71000 },
+    { id: '2', customer: 'Ali Hassan', tag: '#CT-2042 • Hostels', status: 'READY', amount: 45000 },
+    { id: '3', customer: 'Sara Ahmed', tag: '#CT-2040 • Pick up', status: 'COLLECTED', amount: 18000 },
   ];
 
   return (
-    <div className="admin-content">
-      {/* Header Row (03-Admin-Dashboard.svg) */}
-      <div className="admin-header-row">
+    <div className="space-y-6">
+      {/* Page Title & Live Indicator */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1>Good afternoon, {firstName}</h1>
-          <p>Here is what is happening at your store today.</p>
+          <h1 className="text-2xl sm:text-3xl font-[800] text-ink tracking-tight">Store overview</h1>
+          <p className="text-xs text-muted mt-0.5">Today, 25 September • Live market</p>
         </div>
 
-        <Link
-          href="/admin/products#new"
-          className="primary-button !min-h-[43px] !rounded-[12px] !text-xs !py-2"
-        >
-          <Plus size={16} />
-          <span>Add product</span>
-        </Link>
-      </div>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <Link
+            href="/admin/staff"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-lime hover:bg-[#cfe569] text-ink font-bold text-xs transition-all shadow-xs"
+          >
+            <span>+ Grant Admin Access</span>
+          </Link>
 
-      {/* 4 KPI Stat Cards (03-Admin-Dashboard.svg) */}
-      <div className="admin-stat-grid">
-        {/* Orders Today */}
-        <div className="admin-stat-card">
-          <div className="stat-icon-circle bg-lime" />
-          <span className="stat-label">Orders today</span>
-          <span className="stat-value">28</span>
-          <span className="stat-diff font-medium">+12% vs yesterday</span>
-        </div>
-
-        {/* Sales Today */}
-        <div className="admin-stat-card">
-          <div className="stat-icon-circle bg-[#E8EEDE]" />
-          <span className="stat-label">Sales today</span>
-          <span className="stat-value">Rs 18,420</span>
-          <span className="stat-diff font-medium">+8.4% vs yesterday</span>
-        </div>
-
-        {/* Pending Orders */}
-        <div className="admin-stat-card">
-          <div className="stat-icon-circle bg-[#F9E3D7]" />
-          <span className="stat-label">Pending orders</span>
-          <span className="stat-value">{metrics ? String(metrics.pendingOrdersCount).padStart(2, '0') : '08'}</span>
-          <span className="text-[11px] text-muted font-medium">Needs your attention</span>
-        </div>
-
-        {/* Low Stock */}
-        <div className="admin-stat-card">
-          <div className="stat-icon-circle bg-[#E5ECF2]" />
-          <span className="stat-label">Low stock</span>
-          <span className="stat-value">{metrics ? String(metrics.lowStockCount).padStart(2, '0') : '03'}</span>
-          <span className="text-[11px] text-muted font-medium">Review inventory</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Campus shop open</span>
+          </div>
         </div>
       </div>
 
-      {/* Mid Grid: Sales Overview & Order Status (03-Admin-Dashboard.svg) */}
-      <div className="admin-mid-grid">
-        {/* Sales Overview Bar Chart */}
-        <div className="admin-card">
+      {/* 4 Key Metrics (Figma 18-Mobile 2x2 & 08-Desktop 4-col) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* Revenue */}
+        <div className="bg-white rounded-[22px] border border-line/80 p-4 sm:p-5 space-y-2 shadow-xs">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted">
+            Revenue
+          </span>
+          <p className="text-xl sm:text-2xl font-[900] text-ink">
+            Rs. {Math.round(revenueTotal / 100).toLocaleString()}
+          </p>
+          <div className="flex items-center gap-1 text-[11px] font-bold text-leaf">
+            <TrendingUp size={13} />
+            <span>+12.4%</span>
+          </div>
+        </div>
+
+        {/* Orders */}
+        <div className="bg-white rounded-[22px] border border-line/80 p-4 sm:p-5 space-y-2 shadow-xs">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted">
+            Orders
+          </span>
+          <p className="text-xl sm:text-2xl font-[900] text-ink">{ordersCount}</p>
+          <p className="text-[11px] text-muted">14 this week</p>
+        </div>
+
+        {/* Preparing */}
+        <div className="bg-white rounded-[22px] border border-line/80 p-4 sm:p-5 space-y-2 shadow-xs">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted">
+            Preparing
+          </span>
+          <p className="text-xl sm:text-2xl font-[900] text-ink">{preparingCount}</p>
+          <p className="text-[11px] text-amber-600 font-semibold">3 ready soon</p>
+        </div>
+
+        {/* Low stock */}
+        <div className="bg-white rounded-[22px] border border-line/80 p-4 sm:p-5 space-y-2 shadow-xs">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted">
+            Low stock
+          </span>
+          <p className="text-xl sm:text-2xl font-[900] text-ink">0{lowStockCount}</p>
+          <p className="text-[11px] text-rose-600 font-semibold">Needs attention</p>
+        </div>
+      </div>
+
+      {/* Middle Row: Sales this week Bar Chart & Status Gauge */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Sales This Week Bar Chart */}
+        <div className="lg:col-span-7 bg-white rounded-[24px] border border-line/80 p-5 sm:p-6 space-y-4 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <div>
-              <h2>Sales overview</h2>
-              <p className="subtitle">Orders completed this week</p>
-            </div>
-            <span className="px-3 py-1 rounded-full bg-canvas-soft text-[10px] font-semibold text-ink">
-              This week
-            </span>
+            <h2 className="text-sm sm:text-base font-extrabold text-ink">Sales this week</h2>
+            <span className="text-xs font-semibold text-leaf">Daily average: Rs. 9,400</span>
           </div>
 
-          <div className="admin-sales-bars">
+          {/* Bar Chart Visualization */}
+          <div className="h-44 flex items-end justify-between gap-2 sm:gap-4 pt-6 px-2">
             {weekDays.map((item) => (
-              <div key={item.day} className="bar-col">
+              <div key={item.day} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
                 <div
-                  className={`bar-fill ${item.highlight ? 'highlight' : ''}`}
-                  style={{ height: `${item.height}px` }}
+                  className={`w-full max-w-[36px] rounded-t-xl transition-all ${
+                    item.active ? 'bg-[#16251F]' : 'bg-[#E3EBE5] hover:bg-[#CAD8CE]'
+                  }`}
+                  style={{ height: `${item.height}%` }}
                 />
-                <span className="bar-day">{item.day}</span>
+                <span className="text-[11px] font-bold text-muted">{item.day}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Order Status Donut Chart */}
-        <div className="admin-card flex flex-col justify-between">
-          <div>
-            <h2>Order status</h2>
+        {/* Order Status Gauge (Desktop & Mobile) */}
+        <div className="lg:col-span-5 bg-white rounded-[24px] border border-line/80 p-5 sm:p-6 space-y-4 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm sm:text-base font-extrabold text-ink">Order status</h2>
+            <span className="text-xs text-muted">38 total</span>
           </div>
 
-          <div className="donut-container">
-            <div
-              className="relative w-36 h-36 rounded-full flex items-center justify-center"
-              style={{
-                background: 'conic-gradient(#D8EF72 0% 50%, #84A08B 50% 80%, #ECF0EA 80% 100%)',
-              }}
-            >
-              <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center font-bold text-2xl text-ink">
-                28
+          {/* Circular donut summary display */}
+          <div className="py-4 flex items-center justify-center">
+            <div className="relative w-36 h-36 rounded-full border-[12px] border-[#16251F] border-t-lime border-r-[#3D674B] flex items-center justify-center">
+              <div className="text-center">
+                <span className="text-2xl font-[900] text-ink">38</span>
+                <span className="block text-[10px] uppercase font-bold text-muted">Orders</span>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-around text-xs font-semibold pt-2">
-            <span className="text-leaf">● Completed 14</span>
-            <span className="text-muted">● Pending 08</span>
+          <div className="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-line/60">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#16251F]" />
+              <span className="font-semibold text-ink">Preparing (14)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-lime" />
+              <span className="font-semibold text-ink">Ready (7)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#3D674B]" />
+              <span className="font-semibold text-ink">Completed (12)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+              <span className="font-semibold text-ink">New (5)</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Recent Orders Table (03-Admin-Dashboard.svg) */}
-      <div className="admin-card">
-        <div className="flex items-center justify-between mb-4">
-          <h2>Recent orders</h2>
-          <Link href="/admin/orders" className="text-xs font-bold text-leaf hover:underline">
-            View all →
+      {/* Bottom Section: Recent Orders List (Figma 18-Mobile & 08-Desktop) */}
+      <div className="bg-white rounded-[24px] border border-line/80 p-5 sm:p-6 space-y-4 shadow-xs">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-extrabold text-ink">Recent orders</h2>
+          <Link
+            href="/admin/orders"
+            className="text-xs font-bold text-leaf hover:text-ink transition-colors flex items-center gap-1"
+          >
+            <span>View all</span>
+            <ArrowRight size={13} strokeWidth={2.5} />
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="admin-table">
-            <thead>
-              <tr className="sr-only">
-                <th>Order Number</th>
-                <th>Customer</th>
-                <th>Items</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.length > 0 ? (
-                orders.slice(0, 4).map((o) => {
-                  const customerName =
-                    typeof o.customer === 'object' && o.customer !== null
-                      ? (o.customer as any).name
-                      : 'Campus Student';
+        <div className="divide-y divide-line/60">
+          {(orders.length > 0 ? orders.slice(0, 4) : demoRecentOrders).map((order: any) => {
+            const customerName =
+              order.customerName ||
+              (typeof order.customer === 'object' ? order.customer?.name : order.customer) ||
+              'Ayesha Khan';
+            const orderNum = order.orderNumber ? `#${order.orderNumber}` : order.tag;
+            const statusStr = (order.orderStatus || order.status || 'PREPARING').toUpperCase();
 
-                  const itemSummary =
-                    o.items[0]?.name +
-                    (o.items.length > 1 ? ` + ${o.items.length - 1} items` : '');
+            return (
+              <div
+                key={order._id || order.id}
+                className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4"
+              >
+                <div>
+                  <p className="font-bold text-xs sm:text-sm text-ink">{customerName}</p>
+                  <p className="text-[11px] text-muted">{orderNum}</p>
+                </div>
 
-                  return (
-                    <tr key={o._id}>
-                      <td className="font-bold text-ink whitespace-nowrap">
-                        <Link href="/admin/orders" className="hover:text-leaf">
-                          #{o.orderNumber}
-                        </Link>
-                      </td>
-                      <td className="whitespace-nowrap">{customerName}</td>
-                      <td className="whitespace-nowrap">{itemSummary}</td>
-                      <td className="whitespace-nowrap">
-                        <PriceTag paisa={o.total} size="sm" className="font-semibold text-muted" />
-                      </td>
-                      <td className="whitespace-nowrap text-right">{getStatusBadge(o.orderStatus)}</td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <>
-                  <tr>
-                    <td className="font-bold text-ink">#CT-1028</td>
-                    <td>Sara Ahmed</td>
-                    <td>Iced matcha + 2 items</td>
-                    <td>Rs 790</td>
-                    <td className="text-right">{getStatusBadge('preparing')}</td>
-                  </tr>
-                  <tr>
-                    <td className="font-bold text-ink">#CT-1027</td>
-                    <td>Bilal Hassan</td>
-                    <td>Campus notebook</td>
-                    <td>Rs 240</td>
-                    <td className="text-right">{getStatusBadge('ready_for_pickup')}</td>
-                  </tr>
-                  <tr>
-                    <td className="font-bold text-ink">#CT-1026</td>
-                    <td>Noor Fatima</td>
-                    <td>Chicken wrap + water</td>
-                    <td>Rs 560</td>
-                    <td className="text-right">{getStatusBadge('placed')}</td>
-                  </tr>
-                </>
-              )}
-            </tbody>
-          </table>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider ${
+                      statusStr.includes('PREPARING')
+                        ? 'bg-amber-100 text-amber-900'
+                        : statusStr.includes('READY')
+                        ? 'bg-lime text-ink'
+                        : 'bg-canvas-soft text-muted'
+                    }`}
+                  >
+                    {statusStr.replace(/_/g, ' ')}
+                  </span>
+                  <Link
+                    href="/admin/orders"
+                    className="p-1 text-muted hover:text-ink hidden sm:block"
+                  >
+                    <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

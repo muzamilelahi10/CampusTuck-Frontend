@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <!-- Soft shadow -->
+  <ellipse cx="120" cy="204" rx="50" ry="11" fill="#16251F" fill-opacity="0.08"/>
+
+  <!-- Chips Bag Group (slightly tilted) -->
+  <g transform="translate(120, 115) rotate(4) translate(-120, -115)">
+    <!-- Main Pouch Silhouette with crinkled seal top & bottom -->
+    <path d="M72 44 
+             L76 38 L82 44 L88 38 L94 44 L100 38 L106 44 L112 38 L118 44 L124 38 L130 44 L136 38 L142 44 L148 38 L154 44 L160 38 L164 44
+             L168 184
+             L164 190 L158 184 L152 190 L146 184 L140 190 L134 184 L128 190 L122 184 L116 190 L110 184 L104 190 L98 184 L92 190 L86 184 L80 190 L76 184 L72 190
+             Z" fill="#F07C52"/>
+
+    <!-- Pouch shading and highlights -->
+    <path d="M80 44 L160 44 L164 184 L76 184 Z" fill="#F07C52"/>
+    <rect x="80" y="44" width="14" height="140" fill="#FFFFFF" fill-opacity="0.15"/>
+    <rect x="148" y="44" width="14" height="140" fill="#B84922" fill-opacity="0.25"/>
+
+    <!-- Red Banner / Brand Arc -->
+    <ellipse cx="120" cy="104" rx="36" ry="32" fill="#E84A36"/>
+    <circle cx="120" cy="104" r="26" fill="#FAD02C"/>
+
+    <text x="120" y="108" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="900" fill="#B3281E" text-anchor="middle" letter-spacing="0.5">Lay&apos;s</text>
+    
+    <!-- Subtitle on bag -->
+    <rect x="90" y="140" width="60" height="16" rx="4" fill="#6B1E1A"/>
+    <text x="120" y="152" font-family="'Plus Jakarta Sans', sans-serif" font-size="8" font-weight="800" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.8">MASALA</text>
+  </g>
+</svg>

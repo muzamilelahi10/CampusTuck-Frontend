@@ -49,7 +49,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none p-2">
+      <div className="toast-stack fixed md:bottom-4 md:right-4 z-[80] flex flex-col gap-2 md:max-w-sm md:w-full pointer-events-none p-2" role="status" aria-live="polite">
         {toasts.map((item) => (
           <div
             key={item.id}
@@ -69,7 +69,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               {item.type === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-600" />}
               {item.type === 'info' && <Info className="w-5 h-5 text-sky-600" />}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0 break-words">
               {item.title && <div className="font-semibold">{item.title}</div>}
               <div>{item.message}</div>
             </div>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <!-- Soft shadow -->
+  <ellipse cx="120" cy="204" rx="46" ry="10" fill="#16251F" fill-opacity="0.08"/>
+
+  <!-- Soda Can Body -->
+  <g transform="translate(120, 112) translate(-120, -112)">
+    <!-- Top Rim Metallic -->
+    <path d="M84 48 C84 43 156 43 156 48 L154 54 C154 56 86 56 86 54 Z" fill="#CCD5CA"/>
+    <ellipse cx="120" cy="46" rx="36" ry="7" fill="#E4E9E0" stroke="#CCD5CA" stroke-width="1"/>
+    <!-- Pull Tab -->
+    <ellipse cx="120" cy="46" rx="14" ry="3" fill="#CCD5CA"/>
+
+    <!-- Can Main Cylinder -->
+    <path d="M84 54 C84 52 156 52 156 54 L155 178 C155 186 85 186 85 178 Z" fill="#2E6947"/>
+
+    <!-- Can Highlights & Shading -->
+    <rect x="90" y="54" width="8" height="124" fill="#FFFFFF" fill-opacity="0.18"/>
+    <rect x="146" y="54" width="7" height="124" fill="#16251F" fill-opacity="0.15"/>
+
+    <!-- White Center Emblem -->
+    <rect x="85" y="80" width="70" height="74" fill="#FFFFFF" rx="4"/>
+    
+    <!-- Pakola Text & Star -->
+    <text x="120" y="112" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="900" fill="#2E6947" text-anchor="middle" letter-spacing="1">PAKOLA</text>
+    <text x="120" y="128" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="700" fill="#3D674B" text-anchor="middle" letter-spacing="0.5">ICE CREAM SODA</text>
+    <path d="M120 89 L122 93 L126 94 L123 97 L124 101 L120 99 L116 101 L117 97 L114 94 L118 93 Z" fill="#2E6947"/>
+
+    <!-- Bottom Rim Metallic -->
+    <path d="M85 178 C85 184 155 184 155 178 L152 186 C152 191 88 191 88 186 Z" fill="#CCD5CA"/>
+  </g>
+</svg>

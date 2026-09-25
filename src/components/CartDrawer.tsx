@@ -14,7 +14,7 @@ export function CartDrawer() {
   if (!isCartOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[70] overflow-hidden animate-in fade-in duration-200">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-ink/40 backdrop-blur-sm transition-opacity"
@@ -121,7 +121,7 @@ export function CartDrawer() {
 
         {/* Footer Checkout CTA */}
         {items.length > 0 && (
-          <div className="p-4 border-t border-line bg-canvas/40 space-y-3">
+          <div className="p-4 pb-[max(16px,env(safe-area-inset-bottom))] border-t border-line bg-canvas/40 space-y-3">
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted">Subtotal</span>
               <PriceTag paisa={subtotal} size="md" className="text-ink font-bold text-sm" />
@@ -131,14 +131,14 @@ export function CartDrawer() {
               <Link
                 href="/cart"
                 onClick={closeCart}
-                className="secondary-button !min-h-[44px] !text-xs flex-1 text-center"
+                className="secondary-button !min-h-[44px] !text-xs px-3 flex-1 text-center"
               >
                 View Cart
               </Link>
               <Link
                 href="/checkout"
                 onClick={closeCart}
-                className="primary-button !min-h-[44px] !text-xs flex-1 text-center"
+                className="primary-button !min-h-[44px] !text-xs px-3 flex-1 text-center"
               >
                 Checkout <ArrowRight size={14} />
               </Link>
